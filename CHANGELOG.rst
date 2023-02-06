@@ -5,6 +5,56 @@ community.vmware Release Notes
 .. contents:: Topics
 
 
+v3.3.0
+======
+
+Minor Changes
+-------------
+
+- vmware_cluster_drs - Add predictive DRS Setting (https://github.com/ansible-collections/community.vmware/pull/1542).
+- vmware_guest_network - Add PVRDMA network adapter type (https://github.com/ansible-collections/community.vmware/pull/1579).
+
+Bugfixes
+--------
+
+- vmware_cluster_dpm - Fix an issue that the slider and the values of the host_power_action_rate works invertet in the vCenter
+- vmware_cluster_drs - Fix drs_vmotion_rate so that the value corresponds to the vCenter UI. Previously, choosing 1 / 2 configured a migration threshold of 5 / 4 and vice versa (https://github.com/ansible-collections/community.vmware/pull/1542).
+- vmware_guest - Fix check mode (https://github.com/ansible-collections/community.vmware/issues/1272).
+- vmware_host_lockdown_exceptions - Avoid setting exception users to what they already are (https://github.com/ansible-collections/community.vmware/pull/1585).
+- vmware_tools - Fix an issue with pyVmomi 8.0.0.1 (https://github.com/ansible-collections/community.vmware/issues/1578).
+
+New Modules
+-----------
+
+- vmware_guest_vgpu_info - Gather information about vGPU profiles of the specified virtual machine in the given vCenter infrastructure
+
+v3.2.0
+======
+
+Minor Changes
+-------------
+
+- vmware_guest - Add sub-option to configure virtual performance counters (https://github.com/ansible-collections/community.vmware/issues/1511).
+- vmware_guest - Adding sub-options to configure CPU and memory shares (https://github.com/ansible-collections/community.vmware/issues/356).
+- vmware_guest_boot_manager - Add a new parameter boot_hdd_name to specify the boot disk name(https://github.com/ansible-collections/community.vmware/pull/1543).
+- vmware_guest_custom_attributes - Improve the code quality and added the return value for diff(https://github.com/ansible-collections/community.vmware/pull/1532).
+- vmware_vm_info - Adding resource pool of the VM to result (https://github.com/ansible-collections/community.vmware/pull/1551).
+
+Bugfixes
+--------
+
+- vmware_dvs_portgroup - Fix an issue when deleting portgroups (https://github.com/ansible-collections/community.vmware/issues/1522).
+- vmware_guest_instant_clone - Fix an issue with pyVmomi 8.0.0.1 (https://github.com/ansible-collections/community.vmware/issues/1555).
+- vmware_host_lockdown - Fix issue `'VmwareLockdownManager' object has no attribute 'warn'` (https://github.com/ansible-collections/community.vmware/pull/1540).
+- vmware_object_custom_attributes_info - Fixed an issue that has occurred an error if a custom attribute is the global type(https://github.com/ansible-collections/community.vmware/pull/1541).
+- vmware_portgroup_info - Fix an issue that can fail the module after manually updating a portgroup through vCenter (https://github.com/ansible-collections/community.vmware/issues/1544).
+
+New Modules
+-----------
+
+- vmware_custom_attribute - Manage custom attributes definitions
+- vmware_custom_attribute_manager - Manage custom attributes from VMware for the given vSphere object
+
 v3.1.0
 ======
 
