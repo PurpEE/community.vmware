@@ -1,13 +1,14 @@
-.. _community.vmware.vmware_maintenancemode_module:
+.. _community.vmware.vmware_vsan_hcl_db_module:
 
 
-***************************************
-community.vmware.vmware_maintenancemode
-***************************************
+***********************************
+community.vmware.vmware_vsan_hcl_db
+***********************************
 
-**Place a host into maintenance mode**
+**Manages the vSAN Hardware Compatibility List (HCL) database**
 
 
+Version added: 3.5.0
 
 .. contents::
    :local:
@@ -16,10 +17,16 @@ community.vmware.vmware_maintenancemode
 
 Synopsis
 --------
-- This module can be used for placing a ESXi host into maintenance mode.
-- Support for VSAN compliant maintenance mode when selected.
+- Manages vSAN HCL db on vSphere
+- DB file can be downloaded from https://partnerweb.vmware.com/service/vsan/all.json
 
 
+
+Requirements
+------------
+The below requirements are needed on the host that executes this module.
+
+- vSAN Management SDK, which needs to be downloaded from VMware and installed manually.
 
 
 Parameters
@@ -33,41 +40,6 @@ Parameters
             <th>Choices/<font color="blue">Defaults</font></th>
             <th width="100%">Comments</th>
         </tr>
-            <tr>
-                <td colspan="1">
-                    <div class="ansibleOptionAnchor" id="parameter-"></div>
-                    <b>esxi_hostname</b>
-                    <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
-                    <div style="font-size: small">
-                        <span style="color: purple">string</span>
-                         / <span style="color: red">required</span>
-                    </div>
-                </td>
-                <td>
-                </td>
-                <td>
-                        <div>Name of the host as defined in vCenter.</div>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="1">
-                    <div class="ansibleOptionAnchor" id="parameter-"></div>
-                    <b>evacuate</b>
-                    <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
-                    <div style="font-size: small">
-                        <span style="color: purple">boolean</span>
-                    </div>
-                </td>
-                <td>
-                        <ul style="margin: 0; padding: 0"><b>Choices:</b>
-                                    <li><div style="color: blue"><b>no</b>&nbsp;&larr;</div></li>
-                                    <li>yes</li>
-                        </ul>
-                </td>
-                <td>
-                        <div>If set to <code>true</code>, evacuate all powered off VMs.</div>
-                </td>
-            </tr>
             <tr>
                 <td colspan="1">
                     <div class="ansibleOptionAnchor" id="parameter-"></div>
@@ -158,36 +130,17 @@ Parameters
             <tr>
                 <td colspan="1">
                     <div class="ansibleOptionAnchor" id="parameter-"></div>
-                    <b>state</b>
+                    <b>source</b>
                     <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
                     <div style="font-size: small">
                         <span style="color: purple">string</span>
+                         / <span style="color: red">required</span>
                     </div>
                 </td>
                 <td>
-                        <ul style="margin: 0; padding: 0"><b>Choices:</b>
-                                    <li><div style="color: blue"><b>present</b>&nbsp;&larr;</div></li>
-                                    <li>absent</li>
-                        </ul>
                 </td>
                 <td>
-                        <div>Enter or exit maintenance mode.</div>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="1">
-                    <div class="ansibleOptionAnchor" id="parameter-"></div>
-                    <b>timeout</b>
-                    <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
-                    <div style="font-size: small">
-                        <span style="color: purple">integer</span>
-                    </div>
-                </td>
-                <td>
-                        <b>Default:</b><br/><div style="color: blue">0</div>
-                </td>
-                <td>
-                        <div>Specify a timeout for the operation.</div>
+                        <div>The path to the HCL db file</div>
                 </td>
             </tr>
             <tr>
@@ -230,27 +183,6 @@ Parameters
                         <div>If set to <code>true</code>, please make sure Python &gt;= 2.7.9 is installed on the given machine.</div>
                 </td>
             </tr>
-            <tr>
-                <td colspan="1">
-                    <div class="ansibleOptionAnchor" id="parameter-"></div>
-                    <b>vsan</b>
-                    <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
-                    <div style="font-size: small">
-                        <span style="color: purple">string</span>
-                    </div>
-                </td>
-                <td>
-                        <ul style="margin: 0; padding: 0"><b>Choices:</b>
-                                    <li>ensureObjectAccessibility</li>
-                                    <li>evacuateAllData</li>
-                                    <li>noAction</li>
-                        </ul>
-                </td>
-                <td>
-                        <div>Specify which VSAN compliant mode to enter.</div>
-                        <div style="font-size: small; color: darkgreen"><br/>aliases: vsan_mode</div>
-                </td>
-            </tr>
     </table>
     <br/>
 
@@ -268,85 +200,22 @@ Examples
 
 .. code-block:: yaml
 
-    - name: Enter VSAN-Compliant Maintenance Mode
-      community.vmware.vmware_maintenancemode:
+    - name: Fetch HCL db file
+      ansible.builtin.get_url:
+        url: https://partnerweb.vmware.com/service/vsan/all.json
+        dest: hcl_db.json
+        force: true
+      delegate_to: localhost
+
+    - name: Upload HCL db file to vCenter
+      community.vmware.vmware_vsan_hcl_db:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
-        esxi_hostname: "{{ esxi_hostname }}"
-        vsan: ensureObjectAccessibility
-        evacuate: true
-        timeout: 3600
-        state: present
+        source: hcl_db.json
       delegate_to: localhost
 
 
-
-Return Values
--------------
-Common return values are documented `here <https://docs.ansible.com/ansible/latest/reference_appendices/common_return_values.html#common-return-values>`_, the following are the fields unique to this module:
-
-.. raw:: html
-
-    <table border=0 cellpadding=0 class="documentation-table">
-        <tr>
-            <th colspan="1">Key</th>
-            <th>Returned</th>
-            <th width="100%">Description</th>
-        </tr>
-            <tr>
-                <td colspan="1">
-                    <div class="ansibleOptionAnchor" id="return-"></div>
-                    <b>hostname</b>
-                    <a class="ansibleOptionLink" href="#return-" title="Permalink to this return value"></a>
-                    <div style="font-size: small">
-                      <span style="color: purple">string</span>
-                    </div>
-                </td>
-                <td>always</td>
-                <td>
-                            <div>Name of host in vCenter</div>
-                    <br/>
-                        <div style="font-size: smaller"><b>Sample:</b></div>
-                        <div style="font-size: smaller; color: blue; word-wrap: break-word; word-break: break-all;">esxi.local.domain</div>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="1">
-                    <div class="ansibleOptionAnchor" id="return-"></div>
-                    <b>hostsystem</b>
-                    <a class="ansibleOptionLink" href="#return-" title="Permalink to this return value"></a>
-                    <div style="font-size: small">
-                      <span style="color: purple">string</span>
-                    </div>
-                </td>
-                <td>always</td>
-                <td>
-                            <div>Name of vim reference</div>
-                    <br/>
-                        <div style="font-size: smaller"><b>Sample:</b></div>
-                        <div style="font-size: smaller; color: blue; word-wrap: break-word; word-break: break-all;">&#x27;vim.HostSystem:host-236&#x27;</div>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="1">
-                    <div class="ansibleOptionAnchor" id="return-"></div>
-                    <b>status</b>
-                    <a class="ansibleOptionLink" href="#return-" title="Permalink to this return value"></a>
-                    <div style="font-size: small">
-                      <span style="color: purple">string</span>
-                    </div>
-                </td>
-                <td>always</td>
-                <td>
-                            <div>Action taken</div>
-                    <br/>
-                        <div style="font-size: smaller"><b>Sample:</b></div>
-                        <div style="font-size: smaller; color: blue; word-wrap: break-word; word-break: break-all;">ENTER</div>
-                </td>
-            </tr>
-    </table>
-    <br/><br/>
 
 
 Status
@@ -356,5 +225,4 @@ Status
 Authors
 ~~~~~~~
 
-- Jay Jahns (@jjahns) <jjahns@vmware.com>
-- Abhijeet Kasurde (@Akasurde)
+- Philipp Fruck (@p-fruck)

@@ -477,7 +477,7 @@ options:
   delete_from_inventory:
     description:
     - Whether to delete Virtual machine from inventory or delete from disk.
-    default: False
+    default: false
     type: bool
   datacenter:
     description:
@@ -621,7 +621,7 @@ options:
         existing_vm:
             type: bool
             description:
-            - If set to C(True), do OS customization on the specified virtual machine directly.
+            - If set to C(true), do OS customization on the specified virtual machine directly.
             - Common for Linux and Windows customization.
         dns_servers:
             type: list
@@ -678,7 +678,7 @@ options:
             description:
             - Number of autologon after reboot.
             - Specific to Windows customization.
-            - Ignored if C(autologon) is unset or set to C(False).
+            - Ignored if C(autologon) is unset or set to C(false).
             - If unset, 1 will be used.
         domainadmin:
             type: str
@@ -836,7 +836,7 @@ EXAMPLES = r'''
       num_cpus: 6
       num_cpu_cores_per_socket: 3
       scsi: paravirtual
-      memory_reservation_lock: True
+      memory_reservation_lock: true
       mem_limit: 8096
       mem_reservation: 4096
       cpu_shares_level: "high"
@@ -844,9 +844,9 @@ EXAMPLES = r'''
       cpu_limit: 8096
       cpu_reservation: 4096
       max_connections: 5
-      hotadd_cpu: True
-      hotremove_cpu: True
-      hotadd_memory: False
+      hotadd_cpu: true
+      hotremove_cpu: true
+      hotadd_memory: false
       version: 12 # Hardware version of virtual machine
       boot_firmware: "efi"
     cdrom:
@@ -909,7 +909,7 @@ EXAMPLES = r'''
       - name: VM Network
         ip: 192.168.10.11
         netmask: 255.255.255.0
-    wait_for_ip_address: True
+    wait_for_ip_address: true
     customization:
       domain: "{{ guest_domain }}"
       dns_servers:
@@ -948,7 +948,7 @@ EXAMPLES = r'''
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
     name: vm_name
-    delete_from_inventory: True
+    delete_from_inventory: true
     state: absent
   delegate_to: localhost
 
@@ -1787,12 +1787,16 @@ class PyVmomiHelper(PyVmomi):
             # New VM or existing VM without label specified, add new NVDIMM device
             if vm_obj is None or (vm_obj and not vm_obj.config.template and self.params['nvdimm']['label'] is None):
                 if self.params['nvdimm']['state'] == 'present':
-                    # Get host default PMem storage policy
-                    storage_profile_name = "Host-local PMem Default Storage Policy"
-                    spbm = SPBM(self.module)
-                    pmem_profile = spbm.find_storage_profile_by_name(profile_name=storage_profile_name)
-                    if pmem_profile is None:
-                        self.module.fail_json(msg="Can not find PMem storage policy with name '%s'." % storage_profile_name)
+                    vc_pmem_profile_id = None
+                    # Get default PMem storage policy when host is vCenter
+                    if self.is_vcenter():
+                        storage_profile_name = "Host-local PMem Default Storage Policy"
+                        spbm = SPBM(self.module)
+                        pmem_profile = spbm.find_storage_profile_by_name(profile_name=storage_profile_name)
+                        if pmem_profile is None:
+                            self.module.fail_json(msg="Can not find PMem storage policy with name '%s'." % storage_profile_name)
+                        vc_pmem_profile_id = pmem_profile.profileId.uniqueId
+
                     if not nvdimm_ctl_exists:
                         nvdimm_ctl_spec = self.device_helper.create_nvdimm_controller()
                         self.configspec.deviceChange.append(nvdimm_ctl_spec)
@@ -1800,7 +1804,7 @@ class PyVmomiHelper(PyVmomi):
 
                     nvdimm_dev_spec = self.device_helper.create_nvdimm_device(
                         nvdimm_ctl_dev_key=nvdimm_ctl_key,
-                        pmem_profile_id=pmem_profile.profileId.uniqueId,
+                        pmem_profile_id=vc_pmem_profile_id,
                         nvdimm_dev_size_mb=self.params['nvdimm']['size_mb']
                     )
                     self.change_detected = True
